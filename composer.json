@@ -1,0 +1,17 @@
+{
+    "name": "joao-vitor-sr/products",
+    "description": "A project to save produtos (product) in database",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "joao-vitor-sr",
+            "email": "joaovitorsrs7@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+    	"psr-4": {
+    		"Files\\": "oop/"
+    	}
+    }
+}
