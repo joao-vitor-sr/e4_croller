@@ -48,8 +48,10 @@ class CsvUpdate extends Connect
 				$this->setCbenef($data[36]);
 				$this->setPisConfins($data[11]);
 				$this->setLojaTributo($data[24], $data[23], $data[4]);
-				
+
 				$this->setStatusIns($data[4]);
+
+				$this->updateTributacoesDivergentes();
 
 				$pdo = $this->getPdo();
 				$queryUpdate = $pdo->prepare("UPDATE produtos SET status_inspector = :statusIns, ws_ncm = :ncm, ws_cest = :cest, ws_natureza_receita = :natrec, ws_ajustes_docto_fiscal = :cbenef, id_figura_fiscal = :lojas_tributacao, id_figura_fiscal_pis_cofins = :pis_confins WHERE id = :ean");
@@ -80,6 +82,85 @@ class CsvUpdate extends Connect
 		$fileLog = fopen($this->logFile, "a+");
 		fwrite($fileLog, "\n" . $message);
 		fclose($fileLog);
+	}
+
+	public function updateTributacoesDivergentes()
+	{
+		$pdo = $this->getPdo();
+
+		$querySelect = $pdo->prepare("SELECT * FROM produtos WHERE id = :ean");
+		$querySelect->bindValue(":ean", $this->eanId);
+		$querySelect->execute();
+
+		$querySelectResult = $querySelect->fetch(\PDO::FETCH_ASSOC);
+
+		if ($querySelectResult) {
+			$querySelect = $pdo->prepare("SELECT * FROM tributacoes_divergentes WHERE id_produtos = :id_produtos");
+			$querySelect->bindValue(":id_produtos", $this->eanId);
+			$querySelect->execute();
+
+			$queryResult = $querySelect->fetch(\PDO::FETCH_ASSOC);
+
+			if (!$queryResult) {
+				$sql = "INSERT INTO tributacoes_divergentes (";
+				$sql .= " id_produtos,";
+				$sql .= " id_figura_fiscal,";
+				$sql .= " id_figura_fiscal_pis_cofins,";
+				$sql .= " ws_ncm,";
+				$sql .= " ws_cest,";
+				$sql .= " ws_natureza_receita,";
+				$sql .= " id_figura_fiscal_atual,";
+				$sql .= " id_figura_fiscal_pis_cofins_atual,";
+				$sql .= " ws_ncm_atual,";
+				$sql .= " ws_cest_atual,";
+				$sql .= " ws_natureza_receita_atual";
+				$sql .= " ) VALUES (";
+				$sql .= " :id_produtos,";
+				$sql .= " :id_figura_fiscal,";
+				$sql .= " :id_figura_fiscal_pis_cofins,";
+				$sql .= " :ws_ncm,";
+				$sql .= " :ws_cest,";
+				$sql .= " :ws_natureza_receita,";
+				$sql .= " :id_figura_fiscal_atual,";
+				$sql .= " :id_figura_fiscal_pis_cofins_atual,";
+				$sql .= " :ws_ncm_atual,";
+				$sql .= " :ws_cest_atual,";
+				$sql .= " :ws_natureza_receita_atual";
+				$sql .= ")";
+
+				$queryInsert = $pdo->prepare($sql);
+				$queryInsert->bindValue(":id_produtos", $this->eanId);
+				$queryInsert->bindValue(":id_figura_fiscal", $querySelectResult['id_figura_fiscal']);
+				$queryInsert->bindValue(":id_figura_fiscal_pis_cofins", $querySelectResult['id_figura_fiscal_pis_cofins']);
+				$queryInsert->bindValue(":ws_ncm", $querySelectResult['ws_ncm']);
+				$queryInsert->bindValue(":ws_cest", $querySelectResult['ws_cest']);
+				$queryInsert->bindValue(":ws_natureza_receita", $querySelectResult['ws_natureza_receita']);
+				$queryInsert->bindValue(":id_figura_fiscal_atual", $this->lojaTributoId);
+				$queryInsert->bindValue(":id_figura_fiscal_pis_cofins_atual", $this->pisConfinsId);
+				$queryInsert->bindValue(":ws_ncm_atual", $this->ncmId);
+				$queryInsert->bindValue(":ws_cest_atual", $this->cestId);
+				$queryInsert->bindValue(":ws_natureza_receita_atual", $this->natrecId);
+				$queryInsert->execute();
+
+			}
+			// updating the 'atual' fields
+			$sql = "UPDATE tributacoes_divergentes SET";
+			$sql .= " ws_natureza_receita_atual = :ws_natureza_receita_atual,";
+			$sql .= " ws_cest_atual = :ws_cest_atual,";
+			$sql .= " ws_ncm_atual = :ws_ncm_atual,";
+			$sql .= " id_figura_fiscal_pis_cofins_atual = :id_figura_fiscal_pis_cofins_atual,";
+			$sql .= " id_figura_fiscal_atual = :id_figura_fiscal_atual";
+			$sql .= " WHERE id_produtos = :ean";
+
+			$queryUpdate = $pdo->prepare($sql);
+			$queryUpdate->bindValue(":ws_natureza_receita_atual", $querySelectResult['ws_natureza_receita']);
+			$queryUpdate->bindValue(":ws_cest_atual", $querySelectResult['ws_cest']);
+			$queryUpdate->bindValue(":ws_ncm_atual", $querySelectResult['ws_ncm']);
+			$queryUpdate->bindValue(":id_figura_fiscal_pis_cofins_atual", $querySelectResult['id_figura_fiscal_pis_cofins']);
+			$queryUpdate->bindValue(":id_figura_fiscal_atual", $querySelectResult['id_figura_fiscal']);
+			$queryUpdate->bindValue(":ean", $this->eanId);
+			$queryUpdate->execute();
+		}
 	}
 
 	public function setStatusIns($statusInsValue)
