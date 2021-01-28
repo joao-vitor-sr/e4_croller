@@ -27,7 +27,6 @@ abstract class Connect
 	private $password;
 	private $database;
 
-
 	protected $pdo;
 
 	// Getters and setters
