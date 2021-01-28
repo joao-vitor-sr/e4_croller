@@ -27,6 +27,8 @@ class CsvUpdate extends Connect
 	private $lojaTributoId;
 	private $pisConfinsId;
 
+	private $statusIns;
+
 	private $rowFile;
 
 	public function getEanCsvFile()
@@ -45,11 +47,13 @@ class CsvUpdate extends Connect
 				$this->setNatrec($data[12]);
 				$this->setCbenef($data[36]);
 				$this->setPisConfins($data[11]);
+				$this->setStatusIns($data[4]);
 
 				$this->setLojaTributo($data[24], $data[23]);
 
 				$pdo = $this->getPdo();
-				$queryUpdate = $pdo->prepare("UPDATE produtos SET ws_ncm = :ncm, ws_cest = :cest, ws_natureza_receita = :natrec, ws_ajustes_docto_fiscal = :cbenef, id_figura_fiscal = :lojas_tributacao, id_figura_fiscal_pis_cofins = :pis_confins WHERE id = :ean");
+				$queryUpdate = $pdo->prepare("UPDATE produtos SET status_inspector = :statusIns, ws_ncm = :ncm, ws_cest = :cest, ws_natureza_receita = :natrec, ws_ajustes_docto_fiscal = :cbenef, id_figura_fiscal = :lojas_tributacao, id_figura_fiscal_pis_cofins = :pis_confins WHERE id = :ean");
+				$queryUpdate->bindValue(":statusIns", $this->statusIns);
 				$queryUpdate->bindValue(":ncm", $this->ncmId);
 				$queryUpdate->bindValue(":cest", $this->cestId);
 				$queryUpdate->bindValue(":natrec", $this->natrecId);
@@ -76,6 +80,17 @@ class CsvUpdate extends Connect
 		$fileLog = fopen($this->logFile, "a+");
 		fwrite($fileLog, "\n" . $message);
 		fclose($fileLog);
+	}
+
+	public function setStatusIns($statusInsValue)
+	{
+		if ($statusInsValue == 'D') {
+			$this->statusIns = 'D';
+		} else if ($statusInsValue == 'P') {
+			$this->statusIns = 'N';
+		} else if ($statusInsValue == 'F') {
+			$this->statusIns = 'C';
+		}
 	}
 
 	// Getters and setters
