@@ -65,11 +65,9 @@ class CsvUpdate extends Connect
 				echo "row - {$this->rowFile}" . PHP_EOL;
 
 				$this->rowFile++;
-
 			}
 			fclose($fileCsv);
 		}
-
 	}
 
 	// Log system
@@ -83,9 +81,6 @@ class CsvUpdate extends Connect
 	// Getters and setters
 	public function setLojaTributo($lojaTributoY, $lojaTributoX)
 	{
-		$lojaTributoNumber;
-		$lojaTributoResult;
-
 		$characters = array('F', 'S', 'A');
 		if ($lojaTributoX != 0) {
 			$lojaTributoNumber = $lojaTributoX;
@@ -93,7 +88,7 @@ class CsvUpdate extends Connect
 			$lojaTributoNumber = NULL;
 		}
 
-		$lojaTributoResult = $lojaTributoY . $lojaTributoNumber; 
+		$lojaTributoResult = $lojaTributoY . $lojaTributoNumber;
 
 		$pdo = $this->getPdo();
 		$querySelect = $pdo->prepare("SELECT * FROM lojas WHERE principal = :principal");
@@ -139,7 +134,7 @@ class CsvUpdate extends Connect
 	public function setEan($ean)
 	{
 		if (!empty($ean)) {
-			$this->ean = $ean;	
+			$this->ean = $ean;
 		} else {
 			$this->ean = NULL;
 			$ean = 0;
@@ -156,12 +151,11 @@ class CsvUpdate extends Connect
 			$this->eanId = $resultQuerySelect['id_produtos'];
 		} else {
 			$this->eanId = NULL;
-			$this->log("Nao foi possivel encontrar o id do ean ({$ean}) na linha ({$this->rowFile})");	
+			$this->log("Nao foi possivel encontrar o id do ean ({$ean}) na linha ({$this->rowFile})");
 		}
-
 	}
 
-	public function setNcm($ncm) 
+	public function setNcm($ncm)
 	{
 		if (!empty($ncm)) {
 			$this->ncm = $ncm;
@@ -211,8 +205,6 @@ class CsvUpdate extends Connect
 				$this->log("Nao foi possivel encontrar o id do cest ({$cest}) na linha ({$this->rowFile})");
 			}
 		}
-
-
 	}
 
 	public function setNatrec($natrec)
@@ -272,7 +264,7 @@ class CsvUpdate extends Connect
 		$this->pisConfins = $pisConfins;
 
 		if ((mb_strlen($pisConfins)) == 2) {
-			$pisConfinsFinal = $pisConfins;	
+			$pisConfinsFinal = $pisConfins;
 		} else {
 			$pisConfinsFinal = 0 . $pisConfins;
 		}
@@ -291,4 +283,3 @@ class CsvUpdate extends Connect
 		}
 	}
 }
-
