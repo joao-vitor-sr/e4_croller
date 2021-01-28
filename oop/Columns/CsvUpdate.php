@@ -47,9 +47,9 @@ class CsvUpdate extends Connect
 				$this->setNatrec($data[12]);
 				$this->setCbenef($data[36]);
 				$this->setPisConfins($data[11]);
+				$this->setLojaTributo($data[24], $data[23], $data[4]);
+				
 				$this->setStatusIns($data[4]);
-
-				$this->setLojaTributo($data[24], $data[23]);
 
 				$pdo = $this->getPdo();
 				$queryUpdate = $pdo->prepare("UPDATE produtos SET status_inspector = :statusIns, ws_ncm = :ncm, ws_cest = :cest, ws_natureza_receita = :natrec, ws_ajustes_docto_fiscal = :cbenef, id_figura_fiscal = :lojas_tributacao, id_figura_fiscal_pis_cofins = :pis_confins WHERE id = :ean");
@@ -84,17 +84,23 @@ class CsvUpdate extends Connect
 
 	public function setStatusIns($statusInsValue)
 	{
-		if ($statusInsValue == 'D') {
-			$this->statusIns = 'D';
-		} else if ($statusInsValue == 'P') {
-			$this->statusIns = 'N';
-		} else if ($statusInsValue == 'F') {
-			$this->statusIns = 'C';
+		if (empty($this->statusIns)) {
+			if ($statusInsValue == 'D') {
+				$this->statusIns = 'D';
+			} else if ($statusInsValue == 'P') {
+				$this->statusIns = 'N';
+			} else if ($statusInsValue == 'F') {
+				if ($this->lojaTributoId) {
+					$this->statusIns = 'C';
+				} else {
+					$this->statusIns = 'E';
+				}
+			}
 		}
 	}
 
 	// Getters and setters
-	public function setLojaTributo($lojaTributoY, $lojaTributoX)
+	public function setLojaTributo($lojaTributoY, $lojaTributoX, $statusCsv = '')
 	{
 		$characters = array('F', 'S', 'A');
 		if ($lojaTributoX != 0) {
@@ -135,6 +141,7 @@ class CsvUpdate extends Connect
 
 				if ($resultQuerySelect = $querySelect->fetch(\PDO::FETCH_ASSOC)) {
 					$this->lojaTributoId = $resultQuerySelect['id_figura_fiscal'];
+
 					break;
 				} else {
 					$this->lojaTributoId = NULL;
