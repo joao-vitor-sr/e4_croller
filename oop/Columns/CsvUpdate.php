@@ -49,12 +49,16 @@ class CsvUpdate extends Connect
 				$this->setPisConfins($data[11]);
 				$this->setLojaTributo($data[24], $data[23], $data[4]);
 
+				$dataParceiro = $data['38'] . date("H:i:s");
+
 				$this->setStatusIns($data[4]);
 
 				$this->updateTributacoesDivergentes();
 
 				$pdo = $this->getPdo();
-				$queryUpdate = $pdo->prepare("UPDATE produtos SET status_inspector = :statusIns, ws_ncm = :ncm, ws_cest = :cest, ws_natureza_receita = :natrec, ws_ajustes_docto_fiscal = :cbenef, id_figura_fiscal = :lojas_tributacao, id_figura_fiscal_pis_cofins = :pis_confins WHERE id = :ean");
+				$queryUpdate = $pdo->prepare("UPDATE produtos SET id_usuario_parceiro = :idUser, data_parceiro = :dateParceiro, status_inspector = :statusIns, ws_ncm = :ncm, ws_cest = :cest, ws_natureza_receita = :natrec, ws_ajustes_docto_fiscal = :cbenef, id_figura_fiscal = :lojas_tributacao, id_figura_fiscal_pis_cofins = :pis_confins WHERE id = :ean");
+				$queryUpdate->bindValue(":idUser", $this->getUserParceiro());
+				$queryUpdate->bindValue(":dateParceiro", $dataParceiro);
 				$queryUpdate->bindValue(":statusIns", $this->statusIns);
 				$queryUpdate->bindValue(":ncm", $this->ncmId);
 				$queryUpdate->bindValue(":cest", $this->cestId);
@@ -84,6 +88,17 @@ class CsvUpdate extends Connect
 		fclose($fileLog);
 	}
 
+	public function getUserParceiro()
+	{
+		$pdo = $this->getPdo();
+
+		$querySelect = $pdo->query("SELECT * FROM usuarios WHERE nome = 'ADMINISTRADOR'");
+
+		$queryResult = $querySelect->fetch(\PDO::FETCH_ASSOC);
+
+		return !empty($queryResult['id']) ? $queryResult['id'] : null;
+
+	}
 	public function updateTributacoesDivergentes()
 	{
 		$pdo = $this->getPdo();
@@ -141,7 +156,6 @@ class CsvUpdate extends Connect
 				$queryInsert->bindValue(":ws_cest_atual", $this->cestId);
 				$queryInsert->bindValue(":ws_natureza_receita_atual", $this->natrecId);
 				$queryInsert->execute();
-
 			}
 			// updating the 'atual' fields
 			$sql = "UPDATE tributacoes_divergentes SET";
@@ -385,4 +399,5 @@ class CsvUpdate extends Connect
 			}
 		}
 	}
+	
 }
