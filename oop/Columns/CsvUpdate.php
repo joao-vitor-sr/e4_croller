@@ -214,7 +214,7 @@ class CsvUpdate extends Connect
 		$resultQuerySelect = $querySelect->fetch();
 		$idLojas = $resultQuerySelect['id'];
 
-		$querySelect = $pdo->prepare("SELECT * FROM lojas_tributacao WHERE legenda = :lojaTributo AND id_lojas = :idLojas");
+		$querySelect = $pdo->prepare("SELECT * FROM lojas_tributacao WHERE parceiro = :lojaTributo AND id_lojas = :idLojas");
 		$querySelect->bindValue(":lojaTributo", $lojaTributoResult);
 		$querySelect->bindValue(":idLojas", $idLojas);
 		$querySelect->execute();
